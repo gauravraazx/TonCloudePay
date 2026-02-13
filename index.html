@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TON Payment - Telegram Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            padding-top: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+
+        .ton-logo {
+            font-size: 3em;
+            background: linear-gradient(135deg, #4cc9f0, #7209b7, #f72585);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 1.5em;            background: linear-gradient(135deg, #4cc9f0, #7209b7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-top: 10px;
+        }
+
+        .user-info {
+            background: rgba(76, 201, 240, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+
+        .user-info p {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #4cc9f0;
+            font-size: 1.1em;
+        }
+
+        .tg-id {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            color: #aaa;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4cc9f0;
+            font-size: 0.95em;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(76, 201, 240, 0.3);
+            border-radius: 12px;            color: white;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #4cc9f0;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #4cc9f0, #7209b7);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(76, 201, 240, 0.4);
+        }
+
+        .danger-btn {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+            color: white;
+            display: none;
+            margin-top: 10px;
+        }
+        .danger-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(247, 37, 133, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status.success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid rgba(40, 167, 69, 0.4);
+            color: #28a745;
+            display: block;
+        }
+
+        .status.error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.4);
+            color: #dc3545;
+            display: block;
+        }
+
+        .status.pending {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.4);
+            color: #ffc107;
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #888;
+            padding: 20px;
+        }
+
+        .powered-by {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tg-badge {
+            background: #24a2e0;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="ton-logo">💎</div>
+            <h1>TON Payment System</h1>
+        </div>
+
+        <div class="user-info" id="userInfo">
+            <p><strong class="user-name" id="userName">Loading...</strong></p>
+            <p><span class="tg-id" id="userId">ID: ...</span></p>
+        </div>
+
+        <div id="paymentSection" style="display: none;">
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label for="recipientAddress">💎 Recipient Address *</label>
+                    <input 
+                        type="text"                         id="recipientAddress" 
+                        placeholder="EQB..." 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">💰 Amount (TON) *</label>
+                    <input 
+                        type="number" 
+                        id="amount" 
+                        placeholder="0.00" 
+                        step="0.01" 
+                        min="0.01"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="memo">📝 Memo/Comment (Optional)</label>
+                    <textarea 
+                        id="memo" 
+                        placeholder="Enter payment message..."
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="danger-btn" id="payBtn">
+                    💎 Send Payment
+                </button>
+            </form>
+        </div>
+
+        <button class="primary-btn" id="startBtn">
+            <span class="loading" id="btnLoader" style="display: none;"></span>
+            Start Payment
+        </button>
+
+        <div class="status" id="status"></div>
+
+        <div class="footer">
+            <p>Send TON cryptocurrency instantly</p>
+            <div class="powered-by">
+                <span>Powered by</span>
+                <span class="tg-badge">Telegram Mini App</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Telegram WebApp initialization        const tg = window.Telegram?.WebApp;
+        let user = null;
+
+        const startBtn = document.getElementById('startBtn');
+        const paymentSection = document.getElementById('paymentSection');
+        const userInfo = document.getElementById('userInfo');
+        const userName = document.getElementById('userName');
+        const userId = document.getElementById('userId');
+        const statusDiv = document.getElementById('status');
+        const btnLoader = document.getElementById('btnLoader');
+
+        // Initialize Telegram Mini App
+        function initTelegramApp() {
+            if (!tg) {
+                showError('Telegram WebApp not detected!');
+                return false;
+            }
+
+            // Expand the app to full height
+            tg.expand();
+
+            // Enable closing confirmation (optional)
+            // tg.enableClosingConfirmation();
+
+            // Set header color
+            tg.setHeaderColor('#16213e');
+
+            // Get user info
+            try {
+                user = tg.initDataUnsafe?.user;
+                
+                if (user) {
+                    userName.textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+                    userId.textContent = 'ID: ' + user.id;
+                    
+                    console.log('👤 User:', user);
+                    
+                    // Show payment section after 1 second
+                    setTimeout(() => {
+                        userInfo.style.display = 'block';
+                        paymentSection.style.display = 'block';
+                        startBtn.style.display = 'none';
+                    }, 500);
+                    
+                    return true;
+                } else {
+                    showError('User data not available!');
+                    return false;
+                }
+            } catch (error) {                console.error('Error initializing Telegram app:', error);
+                showError('Initialization error: ' + error.message);
+                return false;
+            }
+        }
+
+        // Show status messages
+        function showStatus(message, type) {
+            statusDiv.innerHTML = message.replace(/\n/g, '<br>');
+            statusDiv.className = 'status ' + type;
+            
+            // Auto hide success after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function showError(message) {
+            showStatus('❌ ' + message, 'error');
+        }
+
+        function showSuccess(message) {
+            showStatus('✅ ' + message, 'success');
+        }
+
+        function showLoading(message) {
+            showStatus('⏳ ' + message, 'pending');
+        }
+
+        // Validate TON address
+        function isValidTonAddress(address) {
+            if (!address) return false;
+            // Check for standard TON address format
+            return /^EQ[A-Za-z0-9_-]{46}$/.test(address) || 
+                   /^UQ[A-Za-z0-9_-]{46}$/.test(address);
+        }
+
+        // Format address for display
+        function formatAddress(address) {
+            if (!address) return '';
+            if (address.length > 12) {
+                return `${address.slice(0, 8)}...${address.slice(-6)}`;
+            }
+            return address;
+        }
+
+        // Payment form submission
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {            e.preventDefault();
+            
+            const recipientAddress = document.getElementById('recipientAddress').value.trim();
+            const amount = parseFloat(document.getElementById('amount').value);
+            const memo = document.getElementById('memo').value.trim();
+            const payBtn = document.getElementById('payBtn');
+
+            // Validate address
+            if (!isValidTonAddress(recipientAddress)) {
+                showError('Invalid TON address format!\nMust start with EQ or UQ');
+                return;
+            }
+
+            // Validate amount
+            if (isNaN(amount) || amount <= 0) {
+                showError('Please enter a valid amount greater than 0!');
+                return;
+            }
+
+            if (amount > 1000) {
+                showError('Amount too large! Maximum: 1000 TON');
+                return;
+            }
+
+            try {
+                payBtn.disabled = true;
+                btnLoader.style.display = 'inline-block';
+                showLoading('Processing payment request...');
+
+                // Create payment data
+                const paymentData = {
+                    user_id: user.id,
+                    username: user.username || user.first_name,
+                    recipient_address: recipientAddress,
+                    amount: amount,
+                    memo: memo,
+                    timestamp: Date.now()
+                };
+
+                console.log('📤 Payment Request:', paymentData);
+
+                // Show confirmation alert
+                tg.showConfirmAlert(
+                    `Confirm Payment\n\n` +
+                    `💎 To: ${formatAddress(recipientAddress)}\n` +
+                    `💰 Amount: ${amount} TON\n` +
+                    `${memo ? `📝 Memo: ${memo}\n` : ''}\n` +
+                    `⚠️ Make sure the address is correct!`,
+                    async (result) => {
+                        if (result) {                            // User confirmed
+                            showLoading('Payment confirmed! Processing...');
+                            
+                            // In production, send this data to your backend
+                            // which will initiate the TON transaction
+                            
+                            setTimeout(() => {
+                                showSuccess(
+                                    `Payment Request Sent!\n\n` +
+                                    `Recipient: ${formatAddress(recipientAddress)}\n` +
+                                    `Amount: ${amount} TON\n\n` +
+                                    `✅ Your payment request has been submitted.\n` +
+                                    `🔔 You will receive a notification once processed.`
+                                );
+                                
+                                // Reset form
+                                document.getElementById('paymentForm').reset();
+                                payBtn.disabled = false;
+                                btnLoader.style.display = 'none';
+                            }, 1500);
+                            
+                        } else {
+                            // User cancelled
+                            showError('Payment cancelled by user');
+                            payBtn.disabled = false;
+                            btnLoader.style.display = 'none';
+                        }
+                    }
+                );
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                showError('Payment failed: ' + error.message);
+                document.getElementById('payBtn').disabled = false;
+                btnLoader.style.display = 'none';
+            }
+        });
+
+        // Start button click
+        startBtn.addEventListener('click', () => {
+            btnLoader.style.display = 'inline-block';
+            startBtn.disabled = true;
+            showLoading('Initializing...');
+            
+            setTimeout(() => {
+                const success = initTelegramApp();
+                if (!success) {
+                    btnLoader.style.display = 'none';
+                    startBtn.disabled = false;
+                }            }, 500);
+        });
+
+        // Auto-initialize on page load
+        window.addEventListener('load', () => {
+            console.log('🚀 Telegram Mini App Loading...');
+            
+            // Small delay for Telegram to initialize
+            setTimeout(() => {
+                if (tg) {
+                    console.log('✅ Telegram WebApp detected');
+                    initTelegramApp();
+                } else {
+                    console.log('❌ Not running in Telegram Mini App');
+                    showStatus(
+                        '⚠️ Please open this in Telegram!\n\n' +
+                        'This is a Telegram Mini App.\n' +
+                        'Open it through a Telegram bot to use.',
+                        'error'
+                    );
+                }
+            }, 300);
+        });
+    </script>
+</body>
+  </html>
