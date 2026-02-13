@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TON CloudePay</title>
+
+  <!-- TonConnect UI SDK -->
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <div class="bg-layer"></div>
+  <canvas id="confetti"></canvas>
+
+  <div class="app">
+
+    <header>
+      <div class="logo">
+        <div class="logo-gem">
+          <svg viewBox="0 0 56 56" fill="none">
+            <path d="M37.56 15.63H18.44c-3.52 0-5.74 3.75-3.97 6.8l11.8 20.43c.74 1.27 2.73 1.27 3.47 0L41.54 22.43c1.77-3.05-.45-6.8-3.98-6.8z" fill="white"/>
+          </svg>
+        </div>
+        <span class="logo-text">TON<em>CloudePay</em></span>
+      </div>
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        MAINNET LIVE
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-label" id="step-label">Step 1 — Connect Wallet</div>
+        <div class="steps">
+          <div class="step active" id="s1"></div>
+          <div class="step" id="s2"></div>
+          <div class="step" id="s3"></div>
+        </div>
+      </div>
+
+      <!-- STEP 1: Connect -->
+      <div class="pane" id="step-connect">
+        <div class="connect-heading">Connect your TON Wallet</div>
+        <div class="connect-sub">
+          Securely connect via TonConnect 2.0.<br>
+          Works with Tonkeeper, MyTonWallet, OpenMask &amp; more.
+        </div>
+        <div id="ton-connect-btn-wrap"></div>
+        <div id="sdk-error" style="display:none"></div>
+      </div>
+
+      <!-- STEP 2: Payment Form -->
+      <div class="pane" id="step-pay" style="display:none">
+
+        <div class="wallet-bar">
+          <div class="wallet-bar-left">
+            <div class="wallet-avatar">💎</div>
+            <div>
+              <div class="wallet-name" id="wname">Connected</div>
+              <div class="wallet-addr-short" id="waddr">loading...</div>
+            </div>
+          </div>
+          <button class="disconnect-btn" onclick="doDisconnect()">Disconnect</button>
+        </div>
+
+        <div class="field">
+          <label>Recipient Address</label>
+          <input type="text" id="to-addr" placeholder="EQxxxxx... or UQxxxxx..."/>
+          <div class="field-hint" id="addr-hint">Enter valid TON mainnet address</div>
+        </div>
+
+        <div class="field">
+          <label>Amount (TON)</label>
+          <div class="amount-row">
+            <input type="number" id="amount" placeholder="0.00" min="0.01" step="0.01" oninput="updateSummary()"/>
+            <span class="ton-unit">TON</span>
+          </div>
+          <div class="field-hint" id="amt-hint">Min: 0.01 TON</div>
+        </div>
+
+        <div class="field">
+          <label>Memo / Comment <span class="optional-tag">(optional)</span></label>
+          <input type="text" id="memo" placeholder="e.g. Invoice #1234 or payment note"/>
+        </div>
+
+        <div class="summary-box" id="summary-box" style="display:none">
+          <div class="summary-row">
+            <span class="s-key">You send</span>
+            <span class="s-val highlight" id="sum-amount">— TON</span>
+          </div>
+          <div class="summary-row">
+            <span class="s-key">Network fee (est.)</span>
+            <span class="s-val">~0.005 TON</span>
+          </div>
+          <div class="summary-row">
+            <span class="s-key">Total deducted</span>
+            <span class="s-val" id="sum-total">— TON</span>
+          </div>
+        </div>
+
+        <button class="pay-btn" id="pay-btn" onclick="sendPayment()">
+          Confirm &amp; Send via Wallet →
+        </button>
+
+        <div id="status-box">
+          <span class="s-icon" id="s-icon">ℹ️</span>
+          <div class="s-text" id="s-text"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer-note">
+      Powered by <a href="https://ton.org" target="_blank">TON Blockchain</a> · TonConnect 2.0<br>
+      Transactions are irreversible · Always verify recipient address
+    </div>
+
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
